@@ -63,15 +63,31 @@ FILTERED=()
 SKIP_FEATURES=""
 want_features=0
 for tok in $APP_CARGO_ARGS; do
+  # 记住 --features 的位置，等确认还有可用特性时再写进命令行；
+  # 直接透传会变成 `--features --features heif`（首次全量跑踩过）。
+  if [ "$tok" = "--features" ]; then
+    want_features=1
+    continue
+  fi
   if [ "$want_features" = 1 ]; then
     kept=""
     for feat in $(echo "$tok" | tr ',' ' '); do
-      pkg="${feat%%/*}"; name="${feat##*/}"
-      if grep -qE "^${name}[[:space:]]*[:=]" "$SRC/apps/$pkg/Cargo.toml" 2>/dev/null \
-         || grep -qE "^${name}[[:space:]]*[:=]" "$SRC/apps/${APP_SLUG}-cli/Cargo.toml" 2>/dev/null; then
-        kept="${kept:+$kept,}$feat"
+      if [ "$feat" = "${feat##*/}" ]; then
+        # 裸特性名（如 heif）：cargo 在选中的包里解析，主包和 cli 包都查
+        if grep -qE "^${feat}[[:space:]]*[:=]" "$SRC/apps/$APP_SLUG/Cargo.toml" 2>/dev/null \
+           || grep -qE "^${feat}[[:space:]]*[:=]" "$SRC/apps/${APP_SLUG}-cli/Cargo.toml" 2>/dev/null; then
+          kept="${kept:+$kept,}$feat"
+        else
+          SKIP_FEATURES="${SKIP_FEATURES:+$SKIP_FEATURES,}$feat"
+        fi
       else
-        SKIP_FEATURES="${SKIP_FEATURES:+$SKIP_FEATURES,}$feat"
+        # 带包名前缀（如 lightcraft/heif）：只看该包的 manifest
+        pkg="${feat%%/*}"; name="${feat##*/}"
+        if grep -qE "^${name}[[:space:]]*[:=]" "$SRC/apps/$pkg/Cargo.toml" 2>/dev/null; then
+          kept="${kept:+$kept,}$feat"
+        else
+          SKIP_FEATURES="${SKIP_FEATURES:+$SKIP_FEATURES,}$feat"
+        fi
       fi
     done
     if [ -n "$kept" ]; then FILTERED+=(--features "$kept"); fi
@@ -79,7 +95,6 @@ for tok in $APP_CARGO_ARGS; do
     continue
   fi
   FILTERED+=("$tok")
-  [ "$tok" = "--features" ] && want_features=1
 done
 if [ -n "$SKIP_FEATURES" ]; then
   echo "warning: 这个版本没有特性 $SKIP_FEATURES，已跳过"
