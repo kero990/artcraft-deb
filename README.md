@@ -133,7 +133,7 @@ GH_TOKEN=xxx python3 scripts/check-updates.py --state versions.json --out matrix
 docker run --rm -it -v "$PWD":/w -w /w python:3.11-buster bash -c '
   sed -i -e "s|deb.debian.org|archive.debian.org|g" -e "/buster-updates/d" /etc/apt/sources.list
   apt-get update && apt-get install -y build-essential pkg-config binutils file dpkg-dev \
-    curl git ca-certificates python3-yaml libxkbcommon-dev libwayland-dev libx11-dev \
+    curl git ca-certificates libxkbcommon-dev libwayland-dev libx11-dev \
     libxrandr-dev libxi-dev libgl1-mesa-dev
   curl --proto =https --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
   PATH=$HOME/.cargo/bin:$PATH ./scripts/build-app.sh photocraft 0.8.2 amd64 x86_64

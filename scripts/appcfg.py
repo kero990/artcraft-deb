@@ -48,25 +48,94 @@ DEFAULT_PERMISSIONS = {
 REQUIRED = ("name", "repo", "appid", "slug", "description")
 
 
-def load_yaml_module():
-    try:
-        import yaml  # type: ignore
-    except ImportError:  # pragma: no cover
-        sys.exit("ERROR: PyYAML 未安装（Debian: apt-get install python3-yaml / pip: pip install pyyaml）")
-    return yaml
-
-
 def app_names():
     if not os.path.isdir(APPS_DIR):
         return []
     return sorted(f[:-4] for f in os.listdir(APPS_DIR) if f.endswith(".yml"))
 
 
+def _scalar(text):
+    t = text.strip()
+    if t == "{}":
+        return {}
+    if t.startswith("[") and t.endswith("]"):
+        inner = t[1:-1].strip()
+        return [item.strip().strip("\"'") for item in inner.split(",")] if inner else []
+    if t in ("true", "True"):
+        return True
+    if t in ("false", "False"):
+        return False
+    if t in ("null", "~", ""):
+        return None
+    return t.strip("\"'")
+
+
+def parse_app_config(fp):
+    """解析 apps/<app>.yml 用到的 YAML 子集，不依赖 PyYAML。
+
+    为什么不依赖 PyYAML：CI 容器 python:3.11-buster 里的 python3 是
+    /usr/local/bin/python3（3.11），而 apt 装的 python3-yaml 只给系统 python3.7
+    用，装了也 import 不到（首次全量跑 12 个作业全死在这上面）。
+
+    支持的语法（也就是 apps/*.yml 实际用到的全部语法）：
+      - 顶层 `key: value`、`key: []`、`key: {}`
+      - `key: |` 块标量（后续 2 空格缩进的行整体作为值）
+      - 2 空格缩进的二级映射（permissions）
+      - 整行注释与空行
+    """
+    lines = fp.read().splitlines()
+    data, i, n = {}, 0, len(lines)
+    while i < n:
+        raw = lines[i]
+        i += 1
+        if not raw.strip() or raw.lstrip().startswith("#"):
+            continue
+        if raw[:1] in (" ", "\t"):
+            sys.exit("ERROR: apps/*.yml 第 %d 行缩进意外: %r" % (i, raw))
+        if ":" not in raw:
+            sys.exit("ERROR: apps/*.yml 第 %d 行不是 key: value: %r" % (i, raw))
+        key, _, rest = raw.partition(":")
+        key, rest = key.strip(), rest.strip()
+        if rest == "|":                      # 块标量
+            block = []
+            while i < n:
+                nxt = lines[i]
+                if not nxt.strip():
+                    block.append("")
+                elif nxt.startswith("  "):
+                    block.append(nxt[2:])
+                else:
+                    break
+                i += 1
+            while block and not block[-1]:
+                block.pop()
+            data[key] = "\n".join(block) + "\n"
+        elif rest == "":                     # 二级映射
+            sub = {}
+            while i < n:
+                nxt = lines[i]
+                if not nxt.strip() or nxt.lstrip().startswith("#"):
+                    i += 1
+                    continue
+                if not nxt.startswith("  "):
+                    break
+                if nxt.strip() == "{}":      # `permissions: {}`（空映射）
+                    i += 1
+                    break
+                sk, _, sv = nxt.strip().partition(":")
+                sub[sk.strip()] = _scalar(sv)
+                i += 1
+            data[key] = sub
+        else:
+            data[key] = _scalar(rest)
+    return data
+
+
 def load_app(app):
     path = os.path.join(APPS_DIR, app + ".yml")
     if not os.path.isfile(path):
         sys.exit("ERROR: 未找到 app 配置 %s（可用: %s）" % (path, ", ".join(app_names())))
-    cfg = load_yaml_module().safe_load(open(path, encoding="utf-8")) or {}
+    cfg = parse_app_config(open(path, encoding="utf-8"))
     cfg.setdefault("slug", app)
     cfg.setdefault("name", cfg["slug"].capitalize())
     cfg.setdefault("homepage", "https://getartcraft.com/apps/%s" % cfg["slug"])
