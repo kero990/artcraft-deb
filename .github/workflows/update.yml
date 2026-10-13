@@ -99,6 +99,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 检查 WebDAV 凭据
+        id: webdav
+        env:
+          WEBDAV_USERNAME: ${{ secrets.WEBDAV_USERNAME }}
+        run: |
+          set -euo pipefail
+          if [ -n "$WEBDAV_USERNAME" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "ready=false" >> "$GITHUB_OUTPUT"
+            echo "::notice::未配置 WEBDAV_USERNAME / WEBDAV_PASSWORD，本次跳过 WebDAV 上传"
+          fi
+
       - name: 下载本次构建产物
         if: ${{ needs.check.outputs.count != '0' }}
         continue-on-error: true
@@ -111,7 +124,7 @@ jobs:
         run: python3 scripts/publish-release.py --artifacts build-artifacts --changed-dir publish
 
       - name: 上传到 WebDAV
-        if: ${{ hashFiles('publish/*.deb') != '' }}
+        if: ${{ steps.webdav.outputs.ready == 'true' && hashFiles('publish/*.deb') != '' }}
         uses: bxb100/action-upload-webdav@v1
         with:
           webdav_address: https://webdav.pcloud.com

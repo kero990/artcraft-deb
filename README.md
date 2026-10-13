@@ -116,6 +116,10 @@ scripts/
 |---|---|
 | `WEBDAV_USERNAME` / `WEBDAV_PASSWORD` | pCloud WebDAV（`bxb100/action-upload-webdav`） |
 
+这两个 secret 没配时流程不会失败，只会在发布作业里提示“跳过 WebDAV 上传”，
+deb 仍然会在 `latest` release 里。`GITHUB_TOKEN` 由 Actions 自动提供，权限只要
+`contents: write`（创建/编辑 release）即可。
+
 ## 本地调试
 
 ```bash
