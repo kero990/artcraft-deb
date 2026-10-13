@@ -122,16 +122,19 @@ jobs:
       - name: 安装构建依赖
         run: |
           set -euo pipefail
+          apt-get update
+          # 读 apps/<app>.yml 要用 PyYAML，先装上再取该 app 的额外依赖列表。
+          # （首次全量跑踩过：顺序反了 12 个作业全死在 ImportError 上）
+          apt-get install -y --no-install-recommends python3-yaml
           python3 scripts/appcfg.py "$APP" --env "$RUNNER_TEMP/app.env"
           # shellcheck disable=SC1090
           . "$RUNNER_TEMP/app.env"
           echo "== $APP_NAME 需要的额外依赖: ${APP_EXTRA_DEPS:-<无>} =="
-          apt-get update
           # APP_EXTRA_DEPS 是包名列表，故意不加引号
           # shellcheck disable=SC2086
           apt-get install -y --no-install-recommends \
             build-essential pkg-config binutils file dpkg-dev \
-            curl wget git ca-certificates python3-yaml \
+            curl wget git ca-certificates \
             libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev \
             $APP_EXTRA_DEPS
 

@@ -169,7 +169,20 @@ def main(argv=None):
         print(json.dumps(state, ensure_ascii=False, indent=2))
         return 0
 
+    # 一个产物都没有、而且还没有 release：直接跳过，绝不能建出一个空的 latest。
+    if not to_upload and not exists:
+        write_summary("## 发布结果\n\n- 本次没有任何完整产物，且 release 尚不存在，跳过发布")
+        return 0
+
     # -------------------------------------------------------------- release --
+    if not to_upload:
+        # 本次没有任何新的完整产物：不动 release，也不建空 release。
+        note = "本次没有新的完整产物，%s release 保持原样" % args.tag
+        if missing:
+            note += "（%d 个 app 缺少产物，见下）" % len(missing)
+        write_summary("## 发布结果\n\n- %s" % note)
+        return 0
+
     if not exists:
         gh("release", "create", args.tag, "--title", "ArtCraft deepin/deb 最新构建",
            "--notes", markdown_body(state, missing))
@@ -213,8 +226,8 @@ def main(argv=None):
     if missing:
         summary.append("- ⚠️ 缺少完整产物: %s" % "; ".join(missing))
     write_summary("\n".join(summary))
-    if missing and not built_apps:
-        sys.exit("ERROR: 没有任何 app 的完整产物，release 保持原样")
+    if missing:
+        print("warning: 以下 app 缺少完整产物: %s" % "; ".join(missing), file=sys.stderr)
     return 0
 
 
