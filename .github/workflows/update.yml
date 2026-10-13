@@ -57,7 +57,7 @@ jobs:
           if ! gh release download "$RELEASE_TAG" --pattern versions.json --dir .state --clobber; then
             echo "还没有 $RELEASE_TAG release，本轮按全新构建处理"
           fi
-          [ -f .state/versions.json ] && cat .state/versions.json || true
+          if [ -f .state/versions.json ]; then cat .state/versions.json; fi
 
       - name: 比对上游版本
         id: c

@@ -57,6 +57,9 @@ permissions:
 env:
   RELEASE_TAG: latest
   CARGO_TERM_COLOR: always
+  # 只编译一次 release，不写增量产物：这些 workspace 的 target 目录本来就大，
+  # 增量缓存对“每个 tag 只编一次”的用法没有帮助，只会撑爆 runner 磁盘。
+  CARGO_INCREMENTAL: "0"
 
 defaults:
   run:
@@ -84,12 +87,8 @@ jobs:
           [ -n "$INPUT_APP" ] || { echo "ERROR: 未指定 app" >&2; exit 1; }
           python3 scripts/check-updates.py --app "$INPUT_APP" --version "$INPUT_VERSION"
           echo "app=$INPUT_APP" >> "$GITHUB_OUTPUT"
-          {
-            echo 'arches={"include":['
-            echo '{"label":"amd64","dearch":"amd64","runner":"ubuntu-latest","asset_arch":"x86_64"},'
-            echo '{"label":"arm64","dearch":"arm64","runner":"ubuntu-22.04-arm","asset_arch":"aarch64"}'
-            echo ']}'
-          } >> "$GITHUB_OUTPUT"
+          # 必须是单行：$GITHUB_OUTPUT 按行解析 key=value。
+          echo 'arches={"include":[{"label":"amd64","dearch":"amd64","runner":"ubuntu-latest","asset_arch":"x86_64"},{"label":"arm64","dearch":"arm64","runner":"ubuntu-22.04-arm","asset_arch":"aarch64"}]}' >> "$GITHUB_OUTPUT"
 
   build:
     name: 编译 ${{ matrix.label }}
@@ -128,6 +127,8 @@ jobs:
           . "$RUNNER_TEMP/app.env"
           echo "== $APP_NAME 需要的额外依赖: ${APP_EXTRA_DEPS:-<无>} =="
           apt-get update
+          # APP_EXTRA_DEPS 是包名列表，故意不加引号
+          # shellcheck disable=SC2086
           apt-get install -y --no-install-recommends \
             build-essential pkg-config binutils file dpkg-dev \
             curl wget git ca-certificates python3-yaml \

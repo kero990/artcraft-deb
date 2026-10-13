@@ -160,8 +160,7 @@ def main(argv=None):
         elif fresh:
             missing.append("%s（只编译了 %s）" % (app, "/".join(sorted(fresh))))
         elif not entry or not all(entry.get("debs", {}).get(a) in asset_names for a in ARCHES):
-            if not exists:
-                missing.append("%s（release 里还没有产物）" % app)
+            missing.append("%s（release 里没有完整产物）" % app)
         state["apps"][app] = entry
 
     if args.dry_run:
