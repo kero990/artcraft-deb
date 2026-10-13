@@ -122,11 +122,14 @@ jobs:
       - name: 安装构建依赖
         run: |
           set -euo pipefail
-          apt-get update
+          # 先把配置读出来拿到该 app 的额外依赖列表。appcfg.py 自带 YAML 子集解析，
+          # 不依赖 PyYAML：python:3.11-buster 里的 python3 是镜像自带的 3.11，
+          # apt 的 python3-yaml 只会装给系统 python3.7（首次全量跑踩过）。
           python3 scripts/appcfg.py "$APP" --env "$RUNNER_TEMP/app.env"
           # shellcheck disable=SC1090
           . "$RUNNER_TEMP/app.env"
           echo "== $APP_NAME 需要的额外依赖: ${APP_EXTRA_DEPS:-<无>} =="
+          apt-get update
           # APP_EXTRA_DEPS 是包名列表，故意不加引号
           # shellcheck disable=SC2086
           apt-get install -y --no-install-recommends \
