@@ -1,0 +1,15 @@
+# lightcraft 的打包配置。改完只需重新触发 build-lightcraft 或等待每日更新检查。
+name: LightCraft
+repo: storytold/lightcraft
+appid: ai.storyteller.lightcraft
+slug: lightcraft
+homepage: https://getartcraft.com/apps/lightcraft
+section: graphics
+features: [lightcraft/heif, lightcraft-cli/heif]
+extra_deps: []
+permissions:
+  camera: true
+description: |
+  开源原生照片管理与 RAW 冲图工具（deepin 重打包）
+    导入、评级、打标签并整理照片；以非破坏方式冲图 RAW 文件（曝光、影调、调色、
+    蒙版与预设），GPU 处理 (wgpu)，附带无界面的 lightcraft-cli 渲染工具。

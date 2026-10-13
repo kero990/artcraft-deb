@@ -1,0 +1,16 @@
+# photocraft 的打包配置。改完只需重新触发 build-photocraft 或等待每日更新检查。
+name: PhotoCraft
+repo: storytold/photocraft
+appid: ai.storyteller.photocraft
+slug: photocraft
+homepage: https://getartcraft.com/apps/photocraft
+section: graphics
+features: [heif]
+extra_deps: []
+permissions:
+  camera: true
+description: |
+  开源原生图像编辑器（deepin 重打包）
+    提供图层、蒙版、调整图层、图层样式、文字与画笔，可打开/保存分层 PSD/PSB
+    文件，支持 8/16/32 位文档与 GPU 合成 (wgpu)，并附带无界面的 photocraft-cli
+    转换/批处理工具。

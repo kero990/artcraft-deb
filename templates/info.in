@@ -1,0 +1,9 @@
+{
+    "appid": "{{APP_ID}}",
+    "name": "{{NAME}}",
+    "version": "{{VERSION}}",
+    "arch": ["{{ARCH}}"],
+    "permissions": {
+{{PERMISSIONS}}
+    }
+}

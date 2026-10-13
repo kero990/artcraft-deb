@@ -1,0 +1,200 @@
+name: build-app
+
+# 单个 ArtCraft app 的编译 + deepin 打包流程。
+#   - 既可被其他 workflow 通过 workflow_call 复用（每日更新检查用它跑矩阵），
+#   - 也可在 Actions 页面手动触发（photocraft.yml 等 12 个薄封装就是这么用的）。
+#
+# 编译在 Debian 10 (glibc 2.28) 容器里进行，产物能在 UOS / Deepin V20 上运行；
+# 上游官方 deb 基于 Ubuntu 22.04 (glibc 2.35)，在 Deepin V20 上起不来。
+
+on:
+  workflow_call:
+    inputs:
+      app:
+        description: "apps/<app>.yml 中的 app 名"
+        type: string
+        required: true
+      version:
+        description: "版本覆盖值，留空取上游最新 release"
+        type: string
+        default: ""
+      publish:
+        description: "构建后更新滚动 latest release"
+        type: boolean
+        default: false
+  workflow_dispatch:
+    inputs:
+      app:
+        description: "要编译的 app"
+        type: choice
+        required: true
+        options:
+          - photocraft
+          - vectorcraft
+          - filmcraft
+          - lightcraft
+          - pdfcraft
+          - effectcraft
+          - designcraft
+          - wordcraft
+          - soundcraft
+          - deckcraft
+          - cadcraft
+          - gridcraft
+      version:
+        description: "版本覆盖值，留空取上游最新 release"
+        required: false
+        default: ""
+      publish:
+        description: "构建后更新滚动 latest release"
+        type: boolean
+        default: true
+
+permissions:
+  contents: write
+  actions: read
+
+env:
+  RELEASE_TAG: latest
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  resolve:
+    name: 解析版本
+    runs-on: ubuntu-latest
+    outputs:
+      app: ${{ steps.r.outputs.app }}
+      version: ${{ steps.r.outputs.version }}
+      arches: ${{ steps.r.outputs.arches }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 解析上游版本
+        id: r
+        env:
+          GH_TOKEN: ${{ github.token }}
+          INPUT_APP: ${{ inputs.app }}
+          INPUT_VERSION: ${{ inputs.version }}
+        run: |
+          set -euo pipefail
+          [ -n "$INPUT_APP" ] || { echo "ERROR: 未指定 app" >&2; exit 1; }
+          python3 scripts/check-updates.py --app "$INPUT_APP" --version "$INPUT_VERSION"
+          echo "app=$INPUT_APP" >> "$GITHUB_OUTPUT"
+          {
+            echo 'arches={"include":['
+            echo '{"label":"amd64","dearch":"amd64","runner":"ubuntu-latest","asset_arch":"x86_64"},'
+            echo '{"label":"arm64","dearch":"arm64","runner":"ubuntu-22.04-arm","asset_arch":"aarch64"}'
+            echo ']}'
+          } >> "$GITHUB_OUTPUT"
+
+  build:
+    name: 编译 ${{ matrix.label }}
+    needs: resolve
+    runs-on: ${{ matrix.runner }}
+    container:
+      image: python:3.11-buster
+    env:
+      APP: ${{ needs.resolve.outputs.app }}
+      VERSION: ${{ needs.resolve.outputs.version }}
+    strategy:
+      fail-fast: false
+      matrix: ${{ fromJSON(needs.resolve.outputs.arches) }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 修复 Debian 10 软件源
+        run: |
+          set -euo pipefail
+          # Debian 10 已归档：main + security 都挪到 archive.debian.org，
+          # 去掉不再提供的 buster-updates，并关掉 Valid-Until 校验。
+          sed -i \
+            -e 's|deb.debian.org|archive.debian.org|g' \
+            -e 's|security.debian.org|archive.debian.org|g' \
+            -e '/buster-updates/d' \
+            /etc/apt/sources.list
+          echo 'Acquire::Check-Valid-Until "false";' > /etc/apt/apt.conf.d/99-archive-no-valid-until
+          cat /etc/apt/sources.list
+
+      - name: 安装构建依赖
+        run: |
+          set -euo pipefail
+          python3 scripts/appcfg.py "$APP" --env "$RUNNER_TEMP/app.env"
+          # shellcheck disable=SC1090
+          . "$RUNNER_TEMP/app.env"
+          echo "== $APP_NAME 需要的额外依赖: ${APP_EXTRA_DEPS:-<无>} =="
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential pkg-config binutils file dpkg-dev \
+            curl wget git ca-certificates python3-yaml \
+            libxkbcommon-dev libwayland-dev libx11-dev libxrandr-dev libxi-dev libgl1-mesa-dev \
+            $APP_EXTRA_DEPS
+
+      - name: 安装 Rust
+        run: |
+          set -euo pipefail
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+          "$HOME/.cargo/bin/rustc" --version
+          "$HOME/.cargo/bin/cargo" --version
+
+      - name: 缓存 cargo registry
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+          key: cargo-${{ matrix.label }}-${{ hashFiles(format('apps/{0}.yml', needs.resolve.outputs.app)) }}
+          restore-keys: |
+            cargo-${{ matrix.label }}-
+
+      - name: 缓存已编译 deb
+        uses: actions/cache@v4
+        with:
+          path: deb-cache
+          key: deb-${{ needs.resolve.outputs.app }}-${{ needs.resolve.outputs.version }}-${{ matrix.dearch }}-v1
+
+      - name: 编译并打包
+        env:
+          DEB_CACHE_DIR: ${{ github.workspace }}/deb-cache
+        run: ./scripts/build-app.sh "$APP" "$VERSION" "${{ matrix.dearch }}" "${{ matrix.asset_arch }}"
+
+      - name: 上传构建产物
+        uses: actions/upload-artifact@v4
+        with:
+          name: deb-${{ needs.resolve.outputs.app }}-${{ matrix.dearch }}
+          path: out/*.deb
+          if-no-files-found: error
+
+  publish:
+    name: 更新 release
+    needs: [resolve, build]
+    if: ${{ inputs.publish }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载本次构建产物
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb-*
+          path: build-artifacts
+
+      - name: 合并进滚动 release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: python3 scripts/publish-release.py --artifacts build-artifacts --changed-dir publish
+
+      - name: 上传到 WebDAV
+        if: ${{ hashFiles('publish/*.deb') != '' }}
+        uses: bxb100/action-upload-webdav@v1
+        with:
+          webdav_address: https://webdav.pcloud.com
+          webdav_username: ${{ secrets.WEBDAV_USERNAME }}
+          webdav_password: ${{ secrets.WEBDAV_PASSWORD }}
+          webdav_upload_path: "/github"
+          files: "publish/*.deb"

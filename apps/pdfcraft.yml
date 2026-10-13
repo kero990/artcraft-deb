@@ -1,0 +1,15 @@
+# pdfcraft 的打包配置。改完只需重新触发 build-pdfcraft 或等待每日更新检查。
+name: PdfCraft
+repo: storytold/pdfcraft
+appid: ai.storyteller.pdfcraft
+slug: pdfcraft
+homepage: https://getartcraft.com/apps/pdfcraft
+section: graphics
+features: []
+extra_deps: [cmake, libclang-dev, clang, perl]
+permissions:
+  {}
+description: |
+  开源原生 PDF 工具箱（deepin 重打包）
+    阅读、批注、填写与签署表单，整理、合并、拆分、编辑、涂黑、保护并导出 PDF，
+    附带无界面的 pdfcraft-cli 命令行工具。

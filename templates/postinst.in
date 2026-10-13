@@ -1,0 +1,41 @@
+#!/bin/bash
+# {{NAME}} (deepin /opt/apps): expose {{CLI}} on /usr/bin.
+# The package itself lives entirely under /opt, so the CLI entry point is
+# created here at install time and removed again by postrm.
+set -e
+
+APP_DIR="/opt/apps/{{APP_ID}}"
+TARGET="$APP_DIR/files/{{CLI}}"
+BIN_PATH="/usr/bin/{{CLI}}"
+
+case "$1" in
+  configure)
+    if [ ! -x "$TARGET" ]; then
+      echo "{{CLI}} not found at $TARGET" >&2
+      exit 1
+    fi
+    chmod 755 "$TARGET" || true
+
+    # Atomically replace the launcher so an interrupted install never leaves a
+    # half-written file on PATH.
+    TMP_PATH="$(mktemp "${BIN_PATH}.tmp.XXXXXX")"
+    trap 'rm -f "$TMP_PATH"' EXIT
+    cat > "$TMP_PATH" <<EOF
+#!/bin/sh
+exec $TARGET "\$@"
+EOF
+    chmod 755 "$TMP_PATH"
+    mv -f "$TMP_PATH" "$BIN_PATH"
+    trap - EXIT
+
+    # Refresh the deepin entry caches (every tool is optional).
+    if command -v update-desktop-database >/dev/null 2>&1; then
+      update-desktop-database -q "$APP_DIR/entries/applications" >/dev/null 2>&1 || true
+    fi
+    if command -v gtk-update-icon-cache >/dev/null 2>&1; then
+      gtk-update-icon-cache -q -t -f "$APP_DIR/entries/icons" >/dev/null 2>&1 || true
+    fi
+    ;;
+esac
+
+exit 0

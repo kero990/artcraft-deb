@@ -1,0 +1,15 @@
+# filmcraft 的打包配置。改完只需重新触发 build-filmcraft 或等待每日更新检查。
+name: FilmCraft
+repo: storytold/filmcraft
+appid: ai.storyteller.filmcraft
+slug: filmcraft
+homepage: https://getartcraft.com/apps/filmcraft
+section: video
+features: []
+extra_deps: [libasound2-dev, libgtk-3-dev]
+permissions:
+  audio_record: true
+description: |
+  开源原生视频剪辑软件（deepin 重打包）
+    时间线剪辑、素材/节目监视器、调色与示波器、关键帧效果、字幕、音频混合与
+    响度表以及导出，GPU 合成 (wgpu)，附带无界面的 filmcraft-cli 命令行工具。

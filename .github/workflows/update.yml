@@ -1,0 +1,121 @@
+name: 每日更新检查
+
+# 每天跑一次：
+#   1. check      —— 比对 12 个上游 GitHub release 与上次编译记录（release 里的
+#                   versions.json），在 job summary 里列出每个 app 的版本差异
+#   2. build      —— 只对“有更新”的 app 跑矩阵（复用 build-app.yml，amd64+arm64），
+#                   没更新的直接沿用 release 里已有的 deb
+#   3. publish    —— 把新 deb 合并进唯一的滚动 latest release，删掉历史 release，
+#                   并把有更新的 deb 上传到 pCloud WebDAV
+
+on:
+  schedule:
+    - cron: "23 2 * * *"   # UTC 02:23，北京时间 10:23
+  workflow_dispatch:
+    inputs:
+      force:
+        description: "忽略版本状态，全部重新编译"
+        type: boolean
+        default: false
+      apps:
+        description: "只处理这些 app（逗号分隔），留空为全部"
+        required: false
+        default: ""
+
+permissions:
+  contents: write
+  actions: read
+
+concurrency:
+  group: artcraft-update
+  cancel-in-progress: false
+
+env:
+  RELEASE_TAG: latest
+  GH_TOKEN: ${{ github.token }}
+  CARGO_TERM_COLOR: always
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: 版本检查
+    runs-on: ubuntu-latest
+    outputs:
+      matrix: ${{ steps.c.outputs.matrix }}
+      count: ${{ steps.c.outputs.count }}
+      apps: ${{ steps.c.outputs.apps }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 取上次编译记录
+        run: |
+          set -euo pipefail
+          mkdir -p .state
+          if ! gh release download "$RELEASE_TAG" --pattern versions.json --dir .state --clobber; then
+            echo "还没有 $RELEASE_TAG release，本轮按全新构建处理"
+          fi
+          [ -f .state/versions.json ] && cat .state/versions.json || true
+
+      - name: 比对上游版本
+        id: c
+        env:
+          INPUT_FORCE: ${{ inputs.force }}
+          INPUT_APPS: ${{ inputs.apps }}
+        run: |
+          set -euo pipefail
+          EXTRA=()
+          if [ "$INPUT_FORCE" = "true" ]; then EXTRA+=(--force); fi
+          if [ -n "$INPUT_APPS" ]; then EXTRA+=(--apps "$INPUT_APPS"); fi
+          python3 scripts/check-updates.py --state .state/versions.json --out matrix.json "${EXTRA[@]}"
+          echo "== matrix.json =="
+          cat matrix.json
+
+  build:
+    name: 编译 ${{ matrix.app }}
+    needs: check
+    if: ${{ needs.check.outputs.count != '0' }}
+    permissions:
+      contents: write
+      actions: read
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix: ${{ fromJSON(needs.check.outputs.matrix) }}
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app: ${{ matrix.app }}
+      version: ${{ matrix.version }}
+      publish: false
+    secrets: inherit
+
+  publish:
+    name: 发布
+    needs: [check, build]
+    if: ${{ always() }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: 下载本次构建产物
+        if: ${{ needs.check.outputs.count != '0' }}
+        continue-on-error: true
+        uses: actions/download-artifact@v4
+        with:
+          pattern: deb-*
+          path: build-artifacts
+
+      - name: 合并进滚动 release
+        run: python3 scripts/publish-release.py --artifacts build-artifacts --changed-dir publish
+
+      - name: 上传到 WebDAV
+        if: ${{ hashFiles('publish/*.deb') != '' }}
+        uses: bxb100/action-upload-webdav@v1
+        with:
+          webdav_address: https://webdav.pcloud.com
+          webdav_username: ${{ secrets.WEBDAV_USERNAME }}
+          webdav_password: ${{ secrets.WEBDAV_PASSWORD }}
+          webdav_upload_path: "/github"
+          files: "publish/*.deb"

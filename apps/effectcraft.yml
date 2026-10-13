@@ -1,0 +1,15 @@
+# effectcraft 的打包配置。改完只需重新触发 build-effectcraft 或等待每日更新检查。
+name: EffectCraft
+repo: storytold/effectcraft
+appid: ai.storyteller.effectcraft
+slug: effectcraft
+homepage: https://getartcraft.com/apps/effectcraft
+section: graphics
+features: []
+extra_deps: [libasound2-dev]
+permissions:
+  audio_record: true
+description: |
+  开源原生动态图形与视觉特效合成器（deepin 重打包）
+    关键帧图层与曲线编辑器、蒙版与形状、文字动画、表达式、3D 摄像机与灯光、
+    300+ 特效与渲染队列（H.264/HEVC/AV1/ProRes/WebM/序列帧），GPU 合成。

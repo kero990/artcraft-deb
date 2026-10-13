@@ -1,0 +1,34 @@
+#!/bin/bash
+# {{NAME}} (deepin /opt/apps): drop /usr/bin/{{CLI}} again.
+# Only files this package wrote are removed, so a launcher installed by some
+# other package survives an uninstall of {{NAME}}.
+set -e
+
+BIN_PATH="/usr/bin/{{CLI}}"
+TARGET="/opt/apps/{{APP_ID}}/files/{{CLI}}"
+APP_DIR="/opt/apps/{{APP_ID}}"
+
+case "$1" in
+  remove|purge|disappear)
+    if [ -L "$BIN_PATH" ]; then
+      if [ "$(readlink "$BIN_PATH")" = "$TARGET" ]; then
+        rm -f "$BIN_PATH"
+      fi
+    elif [ -f "$BIN_PATH" ]; then
+      if grep -Fq "$TARGET" "$BIN_PATH"; then
+        rm -f "$BIN_PATH"
+      fi
+    fi
+    # postinst refreshed the entry caches; those files are not tracked by dpkg,
+    # drop them so /opt/apps/{{APP_ID}} really goes away.
+    rm -f "$APP_DIR/entries/applications/mimeinfo.cache"
+    rm -f "$APP_DIR/entries/icons/icon-theme.cache"
+    # dpkg prunes package directories while it removes the files (before this
+    # script runs), so the empty /opt chain would survive a plain `dpkg -r`:
+    # rmdir it now, but only ever up to $APP_DIR and only while empty.
+    rmdir "$APP_DIR/entries/applications" "$APP_DIR/entries/icons" \
+          "$APP_DIR/entries" "$APP_DIR/files" "$APP_DIR" 2>/dev/null || true
+    ;;
+esac
+
+exit 0

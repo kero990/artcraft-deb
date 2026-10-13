@@ -1,0 +1,15 @@
+# soundcraft 的打包配置。改完只需重新触发 build-soundcraft 或等待每日更新检查。
+name: SoundCraft
+repo: storytold/soundcraft
+appid: ai.storyteller.soundcraft
+slug: soundcraft
+homepage: https://getartcraft.com/apps/soundcraft
+section: sound
+features: []
+extra_deps: [libasound2-dev]
+permissions:
+  audio_record: true
+description: |
+  开源原生数字音频工作站（deepin 重打包）
+    在编辑窗与混音窗中录制、剪辑并混音多轨音频与 MIDI；内置 EQ、动态、混响、
+    延迟与乐器，支持导入 WAV/AIFF/FLAC/MP3/MIDI，附带 soundcraft-cli。

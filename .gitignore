@@ -1,0 +1,9 @@
+.build/
+.state/
+out/
+publish/
+build-artifacts/
+matrix.json
+*.deb
+__pycache__/
+*.pyc

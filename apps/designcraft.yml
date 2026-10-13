@@ -1,0 +1,15 @@
+# designcraft 的打包配置。改完只需重新触发 build-designcraft 或等待每日更新检查。
+name: DesignCraft
+repo: storytold/designcraft
+appid: ai.storyteller.designcraft
+slug: designcraft
+homepage: https://getartcraft.com/apps/designcraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生排版与出版软件（deepin 重打包）
+    跨页与主页、串接文本框、段落与字符样式、色板、文本绕排与 Knuth-Plass
+    段落排版器，支持 IDML 导入导出，附带 designcraft-cli 渲染工具。

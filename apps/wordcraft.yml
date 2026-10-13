@@ -1,0 +1,15 @@
+# wordcraft 的打包配置。改完只需重新触发 build-wordcraft 或等待每日更新检查。
+name: WordCraft
+repo: storytold/wordcraft
+appid: ai.storyteller.wordcraft
+slug: wordcraft
+homepage: https://getartcraft.com/apps/wordcraft
+section: wordprocessors
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生文字处理软件（deepin 重打包）
+    功能区、样式、表格、修订、参考文献与邮件合并；读写 .docx，可打开 .odt、
+    .rtf、.html、.md 与 .txt，并导出 PDF，附带 wordcraft-cli 转换工具。

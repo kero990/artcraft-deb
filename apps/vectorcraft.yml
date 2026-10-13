@@ -1,0 +1,15 @@
+# vectorcraft 的打包配置。改完只需重新触发 build-vectorcraft 或等待每日更新检查。
+name: VectorCraft
+repo: storytold/vectorcraft
+appid: ai.storyteller.vectorcraft
+slug: vectorcraft
+homepage: https://getartcraft.com/apps/vectorcraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生矢量插画工具（deepin 重打包）
+    钢笔、形状与画笔工具、画板、文字、渐变、符号与实时效果，可打开/保存 SVG
+    与 PDF，附带无界面的 vectorcraft-cli 转换工具。

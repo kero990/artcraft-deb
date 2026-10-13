@@ -1,0 +1,15 @@
+# cadcraft 的打包配置。改完只需重新触发 build-cadcraft 或等待每日更新检查。
+name: CADCraft
+repo: storytold/cadcraft
+appid: ai.storyteller.cadcraft
+slug: cadcraft
+homepage: https://getartcraft.com/apps/cadcraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生计算机辅助设计与制图软件（deepin 重打包）
+    命令行、对象捕捉、图层、标注、图案填充与图块，绘制并标注 2D 图纸；打开并
+    保存 DXF/DWG，可导出 SVG 与 PNG，附带 cadcraft-cli 转换工具。

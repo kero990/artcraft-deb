@@ -1,0 +1,39 @@
+name: gridcraft build
+
+# GridCraft 的独立编译流程（手动触发）。
+# 版本状态与产物统一由 update.yml 维护的滚动 latest release 管理，
+# 这里只是“单独重编某一个 app”的入口。
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "版本覆盖值，留空取上游最新 release"
+        required: false
+        default: ""
+      publish:
+        description: "构建后更新滚动 latest release"
+        type: boolean
+        default: true
+
+permissions: {}
+
+env:
+  RELEASE_TAG: latest
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  build:
+    name: 编译 gridcraft
+    permissions:
+      contents: write
+      actions: read
+    uses: ./.github/workflows/build-app.yml
+    with:
+      app: gridcraft
+      version: ${{ inputs.version }}
+      publish: ${{ inputs.publish }}
+    secrets: inherit

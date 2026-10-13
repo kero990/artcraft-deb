@@ -1,0 +1,15 @@
+# gridcraft 的打包配置。改完只需重新触发 build-gridcraft 或等待每日更新检查。
+name: GridCraft
+repo: storytold/gridcraft
+appid: ai.storyteller.gridcraft
+slug: gridcraft
+homepage: https://getartcraft.com/apps/gridcraft
+section: misc
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生电子表格与数据分析软件（deepin 重打包）
+    打开并保存 .xlsx 工作簿与 CSV/TSV 文件，数百个表格函数，支持格式化、排序、
+    筛选与图表，附带 gridcraft-cli 计算与转换工具。

@@ -1,0 +1,15 @@
+# deckcraft 的打包配置。改完只需重新触发 build-deckcraft 或等待每日更新检查。
+name: DeckCraft
+repo: storytold/deckcraft
+appid: ai.storyteller.deckcraft
+slug: deckcraft
+homepage: https://getartcraft.com/apps/deckcraft
+section: editors
+features: []
+extra_deps: [libasound2-dev]
+permissions:
+  audio_record: true
+description: |
+  开源原生演示文稿软件（deepin 重打包）
+    主题、版式、形状、图片、表格、图表、切换与动画；打开并保存 PowerPoint
+    (.pptx)，支持全屏放映与演讲者视图，GPU 渲染，附带 deckcraft-cli。
