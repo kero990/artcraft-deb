@@ -233,8 +233,11 @@ def main(argv=None):
 
     if upload_tag != args.tag:
         gh("release", "delete", args.tag, "--yes", "--cleanup-tag")
-        # gh 的 flag 是 --tag（不是 --tag-name）；改名会同时把 git tag 一起改过来
+        # gh 的 flag 是 --tag（不是 --tag-name）；改名只改 release 指向，旧 git tag
+        # 不会跟着删（实测残留），所以这里显式清掉，否则 tag 会越积越多。
         gh("release", "edit", upload_tag, "--tag", args.tag)
+        gh("api", "-X", "DELETE",
+           "repos/%s/git/refs/tags/%s" % (repo, upload_tag), check=False)
 
     # ------------------------------------------------- 清理历史 release/tag --
     listing = gh("release", "list", "--limit", "100", "--json", "tagName,isDraft", check=False)
