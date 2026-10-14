@@ -89,9 +89,13 @@ cat "$DESKTOP_SRC"
 
 sed -E "s#^Exec=.*#Exec=/opt/apps/$APP_ID/files/$APP_SLUG %F#; s#^TryExec=.*#TryExec=/opt/apps/$APP_ID/files/$APP_SLUG#; s#^Icon=.*#Icon=$APP_ID#" \
   "$DESKTOP_SRC" > "$APPID_DIR/entries/applications/$APP_ID.desktop"
-cp -a "$ICONS_SRC/." "$APPID_DIR/entries/icons/hicolor/"
-test -f "$APPID_DIR/entries/icons/hicolor/256x256/apps/$APP_ID.png" \
-  || { echo "ERROR: 缺少 256x256 图标: $APP_ID.png" >&2; exit 1; }
+# deepin 应用商店对图标尺寸有校验，上游 hicolor 里 16x16→512x512 加 scalable
+# 的全套并非都能通过，所以只装 256x256 这一版。desktop 里 Icon=$APP_ID 由
+# 图标主题按尺寸逐级回退，最终落在 256x256 上，缺其他尺寸不影响显示。
+ICON_SRC="$ICONS_SRC/256x256/apps/$APP_ID.png"
+[ -f "$ICON_SRC" ] || { echo "ERROR: 缺少 256x256 图标: $ICON_SRC" >&2; exit 1; }
+mkdir -p "$APPID_DIR/entries/icons/hicolor/256x256/apps"
+cp -a "$ICON_SRC" "$APPID_DIR/entries/icons/hicolor/256x256/apps/$APP_ID.png"
 find "$APPID_DIR/entries/icons" -type f \( -name "*.png" -o -name "*.svg" \) | sort
 
 # ------------------------------------------------- 3) deepin info + deb control

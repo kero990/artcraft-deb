@@ -160,7 +160,8 @@ jobs:
         uses: actions/cache@v4
         with:
           path: deb-cache
-          key: deb-${{ needs.resolve.outputs.app }}-${{ needs.resolve.outputs.version }}-${{ matrix.dearch }}-v1
+          # v2: v1 缓存的是全尺寸图标产物，deepin 商店校验只要 256x256，换图标策略时升版本号让它失效
+          key: deb-${{ needs.resolve.outputs.app }}-${{ needs.resolve.outputs.version }}-${{ matrix.dearch }}-v2
 
       - name: 编译并打包
         env:
