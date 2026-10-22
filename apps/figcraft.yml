@@ -1,0 +1,15 @@
+# figcraft 的打包配置。改完只需重新触发 build-figcraft 或等待每日更新检查。
+name: FigCraft
+repo: storytold/figcraft
+appid: ai.storyteller.figcraft
+slug: figcraft
+homepage: https://getartcraft.com/apps/figcraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生界面设计与原型工具（deepin 重打包）
+    画框、自动布局、组件与变体、矢量网络、样式、变量与原型交互，本地离线运行，
+    无需账号、无遥测、无订阅，附带无界面的 figcraft-cli 命令行工具。

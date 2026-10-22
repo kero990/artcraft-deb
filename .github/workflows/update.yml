@@ -1,7 +1,7 @@
 name: 每日更新检查
 
 # 每天跑一次：
-#   1. check      —— 比对 12 个上游 GitHub release 与上次编译记录（release 里的
+#   1. check      —— 比对 13 个上游 GitHub release 与上次编译记录（release 里的
 #                   versions.json），在 job summary 里列出每个 app 的版本差异
 #   2. build      —— 只对“有更新”的 app 跑矩阵（复用 build-app.yml，amd64+arm64），
 #                   没更新的直接沿用 release 里已有的 deb
