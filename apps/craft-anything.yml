@@ -1,0 +1,17 @@
+# craft-anything 的打包配置。改完只需重新触发 build-craft-anything 或等待每日更新检查。
+name: Craft Anything
+repo: storytold/craft-anything
+appid: ai.storyteller.craft-anything
+slug: craft-anything
+homepage: https://getartcraft.com/apps/craft-anything
+section: devel
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生软件探索与创作工具（deepin 重打包）
+    用真实的检查工具剖析可执行文件、归档、Web 应用、Android 包与
+    WebAssembly，探究网站、App 或游戏的工作原理，再由内置编码代理生成
+    新项目，与原作逐项比对并迭代改进，附带 craft-anything-cli 与 MCP
+    服务器，可从命令行或 AI 代理驱动。

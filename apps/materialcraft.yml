@@ -1,0 +1,16 @@
+# materialcraft 的打包配置。改完只需重新触发 build-materialcraft 或等待每日更新检查。
+name: MaterialCraft
+repo: storytold/materialcraft
+appid: ai.storyteller.materialcraft
+slug: materialcraft
+homepage: https://getartcraft.com/apps/materialcraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生节点式程序化材质设计器（deepin 重打包）
+    用噪声、图案与滤镜节点图搭建可平铺的 PBR 材质，2D 与 3D 实时预览，
+    导出任意引擎可用的贴图，GPU 视口 (wgpu)，附带无界面的 materialcraft-cli
+    渲染与批处理工具。

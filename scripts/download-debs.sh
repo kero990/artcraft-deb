@@ -26,8 +26,8 @@ set -euo pipefail
 
 REPO="${REPO:-kero990/artcraft-deb}"
 TAG="${TAG:-latest}"
-# 13 个 app × 2 架构（amd64 / arm64）；对不上就提醒，免得漏传商店
-EXPECTED="${EXPECTED:-26}"
+# 16 个 app × 2 架构（amd64 / arm64）；对不上就提醒，免得漏传商店
+EXPECTED="${EXPECTED:-32}"
 PAGE="https://github.com/$REPO/releases/expanded_assets/$TAG"
 
 # 两组候选，用途不同：
@@ -172,7 +172,7 @@ echo "== 完成: $got/$total 个 deb 在 $OUT/ =="
 if [ "$DRY" = 0 ]; then
   du -sh "$OUT" | sed 's/^/   总大小: /'
   if [ -z "$ONLY" ] && [ "$total" -ne "$EXPECTED" ]; then
-    echo "警告: 预期 $EXPECTED 个（13 app × 2 架构），实际 $total 个，可能有 app 缺产物" >&2
+    echo "警告: 预期 $EXPECTED 个（16 app × 2 架构），实际 $total 个，可能有 app 缺产物" >&2
   fi
   echo "   amd64 → 商店选 x86_64，arm64 → 商店选 arm64"
 fi

@@ -1,9 +1,9 @@
 # artcraft-deb
 
 为 ArtCraft 全家桶（[getartcraft.com/apps](https://getartcraft.com/apps)）编译 **deepin 格式 deb** 的自动化仓库。
-13 个 app 全部是 Rust workspace，统一分成 `crates/*` + `apps/<app>` + `apps/<app>-cli` + `apps/<app>-web`，
+16 个 app 全部是 Rust workspace，统一分成 `crates/*` + `apps/<app>` + `apps/<app>-cli` + `apps/<app>-web`，
 所以上游仓库结构、官方 deb 命名（`<app>-<版本>-linux-{x86_64,aarch64}.deb`）、app id（`ai.storyteller.<app>`）
-都高度一致，本仓库因此做到**一份流程脚本 + 13 份配置**。
+都高度一致，本仓库因此做到**一份流程脚本 + 16 份配置**。
 
 | app | 上游仓库 | 官网页面 |
 |---|---|---|
@@ -20,6 +20,9 @@
 | cadcraft | [storytold/cadcraft](https://github.com/storytold/cadcraft) | <https://getartcraft.com/apps/cadcraft> |
 | gridcraft | [storytold/gridcraft](https://github.com/storytold/gridcraft) | <https://getartcraft.com/apps/gridcraft> |
 | figcraft | [storytold/figcraft](https://github.com/storytold/figcraft) | <https://getartcraft.com/apps/figcraft> |
+| texturecraft | [storytold/texturecraft](https://github.com/storytold/texturecraft) | <https://getartcraft.com/apps/texturecraft> |
+| materialcraft | [storytold/materialcraft](https://github.com/storytold/materialcraft) | <https://getartcraft.com/apps/materialcraft> |
+| craft-anything | [storytold/craft-anything](https://github.com/storytold/craft-anything) | <https://getartcraft.com/apps/craft-anything> |
 
 ## 为什么要重编
 
@@ -32,7 +35,7 @@ amd64 用 `ubuntu-latest`，arm64 用 `ubuntu-22.04-arm`，两个架构都原生
 ## 每日更新（update.yml）
 
 ```
-schedule (每天 UTC 02:23)
+schedule (每天 UTC 23:00，即北京时间早上 7:00)
    │
    ├─ check    比对上游 latest release 与上次编译记录（滚动 release 里的 versions.json）
    │           在 job summary 里输出对照表：上次编译 / 上游最新 / 状态
@@ -47,15 +50,15 @@ schedule (每天 UTC 02:23)
                · 本次有更新的 deb 额外上传到 pCloud WebDAV
 ```
 
-也就是说仓库里**永远只有一个 release**（tag `latest`），里面永远是 13 个 app × 2 架构的最新 deb，
+也就是说仓库里**永远只有一个 release**（tag `latest`），里面永远是 16 个 app × 2 架构的最新 deb，
 外加一个 `versions.json` 记录每个 app 当前打包的上游版本，方便任何地方做版本对比。
 
 手动跑 `update.yml` 时可以：
 
-- `force = true`：忽略版本状态，13 个 app 全部重编
+- `force = true`：忽略版本状态，16 个 app 全部重编
 - `apps = photocraft,gridcraft`：只处理指定的 app
 
-## 单个 app 的编译（13 个薄封装）
+## 单个 app 的编译（16 个薄封装）
 
 每个 app 都有一个同名 workflow（`photocraft.yml`、`vectorcraft.yml` …），
 都是对 `.github/workflows/build-app.yml` 的薄封装，用于**单独重编某一个 app**：
@@ -83,7 +86,7 @@ scripts/
 .github/workflows/
   update.yml            每日检查 → 构建有更新的 → 发布
   build-app.yml         可复用的单 app 编译流程（workflow_call + workflow_dispatch）
-  <app>.yml             13 个手动触发的薄封装
+  <app>.yml             16 个手动触发的薄封装
 ```
 
 ## 打包布局（deepin 格式）

@@ -2,7 +2,7 @@ name: build-app
 
 # 单个 ArtCraft app 的编译 + deepin 打包流程。
 #   - 既可被其他 workflow 通过 workflow_call 复用（每日更新检查用它跑矩阵），
-#   - 也可在 Actions 页面手动触发（photocraft.yml 等 13 个薄封装就是这么用的）。
+#   - 也可在 Actions 页面手动触发（photocraft.yml 等 16 个薄封装就是这么用的）。
 #
 # 编译在 Debian 10 (glibc 2.28) 容器里进行，产物能在 UOS / Deepin V20 上运行；
 # 上游官方 deb 基于 Ubuntu 22.04 (glibc 2.35)，在 Deepin V20 上起不来。
@@ -41,6 +41,10 @@ on:
           - deckcraft
           - cadcraft
           - gridcraft
+          - figcraft
+          - texturecraft
+          - materialcraft
+          - craft-anything
       version:
         description: "版本覆盖值，留空取上游最新 release"
         required: false

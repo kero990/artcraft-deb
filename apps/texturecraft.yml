@@ -1,0 +1,16 @@
+# texturecraft 的打包配置。改完只需重新触发 build-texturecraft 或等待每日更新检查。
+name: TextureCraft
+repo: storytold/texturecraft
+appid: ai.storyteller.texturecraft
+slug: texturecraft
+homepage: https://getartcraft.com/apps/texturecraft
+section: graphics
+features: []
+extra_deps: []
+permissions:
+  {}
+description: |
+  开源原生 3D 纹理绘制软件（deepin 重打包）
+    在 glTF、FBX、COLLADA、USD、Alembic、OBJ、PLY 与 STL 模型上直接分层绘制 PBR
+    纹理集，支持蒙版、智能材质填充与网格贴图烘焙，可导出给任意引擎使用，
+    GPU 视口 (wgpu)，附带无界面的 texturecraft-cli 命令行工具。
