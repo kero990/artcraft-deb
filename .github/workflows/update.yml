@@ -124,7 +124,8 @@ jobs:
         run: python3 scripts/publish-release.py --artifacts build-artifacts --changed-dir publish
 
       - name: 上传到 WebDAV
-        if: ${{ steps.webdav.outputs.ready == 'true' && hashFiles('publish/*.deb') != '' }}
+       # if: ${{ steps.webdav.outputs.ready == 'true' && hashFiles('publish/*.deb') != '' }}
+        if: false
         uses: bxb100/action-upload-webdav@v1
         with:
           webdav_address: https://webdav.pcloud.com
