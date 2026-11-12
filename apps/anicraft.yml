@@ -1,0 +1,16 @@
+# anicraft 的打包配置。改完只需重新触发 build-anicraft 或等待每日更新检查。
+name: AniCraft
+repo: storytold/anicraft
+appid: ai.storyteller.anicraft
+slug: anicraft
+homepage: https://getartcraft.com/apps/anicraft
+section: graphics
+features: []
+extra_deps: [libasound2-dev]
+permissions:
+  audio_record: true
+description: |
+  开源原生 2D 矢量动画软件（deepin 重打包）
+    矢量绘图工具、分层时间线与关键帧，支持经典、形状与运动补间、元件与库；
+    打开 FLA 与 XFL 文档，导出 PNG、GIF、SVG、精灵图与 Lottie（可调用本机
+    ffmpeg 导出视频），附带无界面的 anicraft-cli 渲染与 MCP 服务器工具。

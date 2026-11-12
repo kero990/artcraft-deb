@@ -1,9 +1,11 @@
 # artcraft-deb
 
 为 ArtCraft 全家桶（[getartcraft.com/apps](https://getartcraft.com/apps)）编译 **deepin 格式 deb** 的自动化仓库。
-16 个 app 全部是 Rust workspace，统一分成 `crates/*` + `apps/<app>` + `apps/<app>-cli` + `apps/<app>-web`，
+17 个 app 全部是 Rust workspace，统一分成 `crates/*` + `apps/<app>` + `apps/<app>-cli` + `apps/<app>-web`，
 所以上游仓库结构、官方 deb 命名（`<app>-<版本>-linux-{x86_64,aarch64}.deb`）、app id（`ai.storyteller.<app>`）
-都高度一致，本仓库因此做到**一份流程脚本 + 16 份配置**。
+都高度一致，本仓库因此做到**一份流程脚本 + 17 份配置**。
+（例外：anicraft 的主程序是 workspace 根包、没有 `apps/` 目录，但 cargo 包名仍是
+`anicraft` / `anicraft-cli`，与默认 `cargo_pkgs` 完全一致，配置无需任何特殊处理。）
 
 | app | 上游仓库 | 官网页面 |
 |---|---|---|
@@ -13,6 +15,7 @@
 | lightcraft | [storytold/lightcraft](https://github.com/storytold/lightcraft) | <https://getartcraft.com/apps/lightcraft> |
 | pdfcraft | [storytold/pdfcraft](https://github.com/storytold/pdfcraft) | <https://getartcraft.com/apps/pdfcraft> |
 | effectcraft | [storytold/effectcraft](https://github.com/storytold/effectcraft) | <https://getartcraft.com/apps/effectcraft> |
+| anicraft | [storytold/anicraft](https://github.com/storytold/anicraft) | <https://getartcraft.com/apps/anicraft> |
 | designcraft | [storytold/designcraft](https://github.com/storytold/designcraft) | <https://getartcraft.com/apps/designcraft> |
 | wordcraft | [storytold/wordcraft](https://github.com/storytold/wordcraft) | <https://getartcraft.com/apps/wordcraft> |
 | soundcraft | [storytold/soundcraft](https://github.com/storytold/soundcraft) | <https://getartcraft.com/apps/soundcraft> |
@@ -50,15 +53,15 @@ schedule (每天 UTC 23:00，即北京时间早上 7:00)
                · 本次有更新的 deb 额外上传到 pCloud WebDAV
 ```
 
-也就是说仓库里**永远只有一个 release**（tag `latest`），里面永远是 16 个 app × 2 架构的最新 deb，
+也就是说仓库里**永远只有一个 release**（tag `latest`），里面永远是 17 个 app × 2 架构的最新 deb，
 外加一个 `versions.json` 记录每个 app 当前打包的上游版本，方便任何地方做版本对比。
 
 手动跑 `update.yml` 时可以：
 
-- `force = true`：忽略版本状态，16 个 app 全部重编
+- `force = true`：忽略版本状态，17 个 app 全部重编
 - `apps = photocraft,gridcraft`：只处理指定的 app
 
-## 单个 app 的编译（16 个薄封装）
+## 单个 app 的编译（17 个薄封装）
 
 每个 app 都有一个同名 workflow（`photocraft.yml`、`vectorcraft.yml` …），
 都是对 `.github/workflows/build-app.yml` 的薄封装，用于**单独重编某一个 app**：
@@ -86,7 +89,7 @@ scripts/
 .github/workflows/
   update.yml            每日检查 → 构建有更新的 → 发布
   build-app.yml         可复用的单 app 编译流程（workflow_call + workflow_dispatch）
-  <app>.yml             16 个手动触发的薄封装
+  <app>.yml             17 个手动触发的薄封装
 ```
 
 ## 打包布局（deepin 格式）
